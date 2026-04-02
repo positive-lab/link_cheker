@@ -1,6 +1,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from urllib.parse import urlparse
-import re
+from datetime import datetime
+import whois
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -47,7 +48,7 @@ class Ui_MainWindow(object):
         font.setBold(True)
         font.setWeight(75)
         self.pushButton.setFont(font)
-        self.pushButton.setStyleSheet("")
+        # self.pushButton.setStyleSheet("border-width: 40px; border-color: rgb(255, 0, 0);") ## Изменения стиля кнопки хз почему но оно не работает
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.answer)
 
@@ -86,6 +87,23 @@ class Ui_MainWindow(object):
         split_domen = domen.split(".")
         if all(x.isdigit() for x in split_domen):
             total_score += 50
+            total_text += "\n-Используется IP вместо Домена"
+
+        ## Проверка возраста домена
+        current_date = datetime.now().date()
+
+        try:
+            creation_date = whois.whois(parsed.netloc)['creation_date'][0].date()
+            age = (current_date - creation_date).days
+            if age < 14:
+                total_score += 100
+                total_text += "\n-Возраст домена меньше 14 дней"
+            elif age < 30:
+                total_score += 50
+                total_text += "\n-Возраст домена меньше месяца"
+        except:
+            total_text += "\n-Неудалось получить данные о возрасте"
+
 
 
         ## Итоговая оценка
