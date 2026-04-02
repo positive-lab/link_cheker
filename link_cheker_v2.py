@@ -1,6 +1,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from urllib.parse import urlparse
 from datetime import datetime
+from difflib import SequenceMatcher
 import whois
 
 class Ui_MainWindow(object):
@@ -32,12 +33,13 @@ class Ui_MainWindow(object):
         font.setPointSize(15)
         self.total_answer.setFont(font)
 
-        ## Протокол
+        ## Дополнительное предупреждение
         self.dan_con = QtWidgets.QLabel(self.centralwidget)
         self.dan_con.setGeometry(QtCore.QRect(50, 190, 400, 70))
         font = QtGui.QFont()
         font.setPointSize(15)
         self.dan_con.setFont(font)
+        self.dan_con.setStyleSheet("color: rgb(255, 0, 0);")
 
         ## кнопка проверки
         self.pushButton = QtWidgets.QPushButton(parent=self.centralwidget)
@@ -75,7 +77,6 @@ class Ui_MainWindow(object):
         ## Проверка протокола соеденения
         if parsed.scheme == "http":
             self.dan_con.setText("Осторожно соеденение не защищено")
-            self.dan_con.setStyleSheet("color: rgb(255, 0, 0);")
 
             self.dan_con.show()
 
@@ -103,6 +104,39 @@ class Ui_MainWindow(object):
                 total_text += "\n-Возраст домена меньше месяца"
         except:
             total_text += "\n-Неудалось получить данные о возрасте"
+
+        ## Проверка подражателей извесным доменам
+        list_domens = ['microsoft.com',
+                       'google.com',
+                       'apple.com',
+                       'adobe.com',
+                       't.me',
+                       'telegram.org',
+                       'vk.com',
+                       'facebook.com',
+                       'instagram.com',
+                       'whatsapp.com',
+                       'sberbank.ru',
+                       'tbank.ru',
+                       'vtb.ru',
+                       'gosuslugi.ru',
+                       'ozon.ru',
+                       'wildberries.ru',
+                       'amazon.com',
+                       'paypal.com',
+                       'avito.ru',
+                       ]
+
+        for domen_name in list_domens:
+            compare = SequenceMatcher(None, domen_name, parsed.netloc).ratio()
+            if compare < 1.0 and compare > 0.8:
+                total_score += 50
+                self.dan_con.setText("        Осторожно доменное имя \n        отличается от оригинала")
+                # self.dan_con.setText(compare)
+
+                self.dan_con.show()
+
+
 
 
 
