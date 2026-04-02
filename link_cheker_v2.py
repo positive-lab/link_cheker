@@ -1,6 +1,6 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from urllib.parse import urlparse
-
+import re
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -24,9 +24,24 @@ class Ui_MainWindow(object):
         self.lineEdit.setStyleSheet("")
         self.lineEdit.setObjectName("lineEdit")
 
+        ## Ответ
+        self.total_answer = QtWidgets.QLabel(parent = self.centralwidget)
+        self.total_answer.setGeometry(QtCore.QRect(70, 150, 300, 70))
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        self.total_answer.setFont(font)
+
+        ## Протокол
+        self.dan_con = QtWidgets.QLabel(self.centralwidget)
+        self.dan_con.setGeometry(QtCore.QRect(50, 190, 400, 70))
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        self.dan_con.setFont(font)
+
         ## кнопка проверки
         self.pushButton = QtWidgets.QPushButton(parent=self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(130, 90, 181, 61))
+        self.pushButton.setAutoDefault(True)
         font = QtGui.QFont()
         font.setPointSize(15)
         font.setBold(True)
@@ -52,45 +67,51 @@ class Ui_MainWindow(object):
         url = self.lineEdit.text()
         parsed = urlparse(url)
 
-        ## Проверка протокола
-        if not parsed.scheme == "https":
-            total_score += 40
         total_text += f"- протокол: {parsed.scheme}"
 
-        ## Проверяем есть ли домен или просто ip
-        if parsed.netloc.isdigit():
+
+
+        ## Проверка протокола соеденения
+        if parsed.scheme == "http":
+            self.dan_con.setText("Осторожно соеденение не защищено")
+            self.dan_con.setStyleSheet("color: rgb(255, 0, 0);")
+
+            self.dan_con.show()
+
+        else:
+            self.dan_con.hide()
+
+        ## Проверка доменного имени
+        domen = parsed.netloc
+        split_domen = domen.split(".")
+        if all(x.isdigit() for x in split_domen):
             total_score += 50
-            total_text += "\n- используется ip вместо домена"
+
 
         ## Итоговая оценка
-        self.total = QtWidgets.QLabel(parent = self.centralwidget)
-        # self.total.move(70, 160)
-        # self.total.adjustSize()
-        self.total.setGeometry(QtCore.QRect(70, 160, 300, 70))
+        if total_score > 100:
+            self.total_answer.setText("!!!Осторожно высокий риск")
+            self.total_answer.setStyleSheet("color: rgb(255, 0, 0);")
+        elif total_score > 30 or parsed.scheme != "https":
+            self.total_answer.setText("             !Средний риск")
+            self.total_answer.setStyleSheet("color: rgb(255, 85, 0);")
+        elif parsed.scheme == "https":
+            self.total_answer.setText("               Низкий риск")
+            self.total_answer.setStyleSheet("color: rgb(0, 255, 0);")
+        self.total_answer.show()
 
-        if total_score > 30:
-            self.total.setText("!Средний риск \nстоит проверить тщательнее")
-            self.total.setStyleSheet("color: rgb(255, 85, 0);")
-        elif total_score > 100:
-            self.total.setText("!!!Осторожно высокий риск \nлучше вообще не не трогать")
-            self.total.setStyleSheet("color: rgb(255, 0, 0);")
-        else:
-            self.total.setText("Низкий риск можно переходить")
-            self.total.setStyleSheet("color: rgb(0, 255, 0);")
-
-        self.total.show()
 
 
         ## Окно вывода
-        self.textEdit = QtWidgets.QTextEdit(parent=self.centralwidget)
-        self.textEdit.setGeometry(QtCore.QRect(80, 250, 291, 311))
-        self.textEdit.setTabChangesFocus(True)
-        self.textEdit.setObjectName("textEdit")
-
-        ## Вывод
-        self.textEdit.setText(total_text)
-
-        self.textEdit.show()
+        # self.textEdit = QtWidgets.QTextEdit(parent=self.centralwidget)
+        # self.textEdit.setGeometry(QtCore.QRect(80, 250, 291, 311))
+        # self.textEdit.setTabChangesFocus(True)
+        # self.textEdit.setObjectName("textEdit")
+        #
+        # # Вывод
+        # self.textEdit.setText("Hello World")
+        #
+        # self.textEdit.show()
 
 
 if __name__ == "__main__":
